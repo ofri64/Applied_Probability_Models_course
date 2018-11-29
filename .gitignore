@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# ignore data files folder
+/data_files
+
+# ignore .idea folder
+/.idea
