@@ -116,11 +116,16 @@ class AbstractUnigramModel(object):
 
         lines_generator = AbstractUnigramModel.get_data_lines_generator(dataset_path)
         for line_tokens in lines_generator:
+
             for token in line_tokens:
+
                 # add log of current token prob to log sum
+                if token == "afterwards":
+                    a = 1
                 sum_of_log_probs += math.log2(self.get_token_prob(token))
                 # update number of token counts
                 num_total_tokens += 1
 
         perplexity = math.pow(2, (-1/num_total_tokens) * sum_of_log_probs)
         return perplexity
+
