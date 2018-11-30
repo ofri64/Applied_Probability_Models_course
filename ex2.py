@@ -80,7 +80,7 @@ if __name__ == '__main__':
     output_writer.write_line(input_word_estimator)
     output_writer.write_line(unseen_word_estimator)
 
-    # perplextiy score of different lambda
+    # perplexity score of different lambda
     lambda_values = [0.01, 0.1, 1]
     for lambda_ in lambda_values:
         lidstone.set_lambda(lambda_)
@@ -94,6 +94,7 @@ if __name__ == '__main__':
     output_writer.write_line(min_perplexity)
 
     # Held-Out model part
+
     held_out = HeldOutUnigramModel()
     training_validation_ratio = 0.5
     num_train, num_validation = held_out.split_dev_to_train_validation(dev_file, training_validation_ratio)
@@ -109,6 +110,20 @@ if __name__ == '__main__':
     output_writer.write_line(input_word_estimator)
     output_writer.write_line(unseen_word_estimator)
 
+    # models evaluation and comparison on test file
+
+    num_events_test_set = AbstractUnigramModel.get_num_events_for_dataset(test_file)
+    lidstone.set_lambda(best_lambda)
+    best_lidstone_test_perplexity = lidstone.calculate_perplexity(test_file)
+    held_out_test_perplexity = held_out.calculate_perplexity(test_file)
+
+    output_writer.write_line(best_lidstone_test_perplexity)
+    output_writer.write_line(held_out_test_perplexity)
+
+    better_model = 'H' if held_out_test_perplexity < best_lidstone_test_perplexity else 'L'
+    output_writer.write_line(better_model)
+
     output_writer.close_file()
+
 
 
