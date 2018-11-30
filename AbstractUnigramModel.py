@@ -4,8 +4,6 @@ import math
 
 class AbstractUnigramModel(object):
 
-    TRAIN_VALID_RATIO = 0.9
-
     def __init__(self):
 
         self.training_set_path = None
@@ -39,11 +37,11 @@ class AbstractUnigramModel(object):
 
         return num_events
 
-    def split_dev_to_train_validation(self, validation_set_path):
+    def split_dev_to_train_validation(self, validation_set_path, train_ratio):
 
         # calculate how many tokens should be in training set and validation set
         num_events = AbstractUnigramModel.get_num_events_for_dataset(validation_set_path)
-        num_train = round(AbstractUnigramModel.TRAIN_VALID_RATIO * num_events)
+        num_train = round(train_ratio * num_events)
         num_validation = num_events - num_train
 
         # initiate file paths for to-be-written training and validation files

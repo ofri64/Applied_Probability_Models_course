@@ -1,6 +1,7 @@
 import sys
 from AbstractUnigramModel import AbstractUnigramModel
 from LidstonUnigramModel import LidstoneUnigramModel
+from HeldOutUnigramModel import HeldOutUnigramModel
 
 VOCAB_SIZE = 300000
 
@@ -16,6 +17,9 @@ class OutputWriter(object):
         self.fp.write("#Output{0}:\t{1}\n".format(self.current_line_counter, value))
         self.current_line_counter += 1
 
+    def write_students(self, students_names, students_ids):
+        self.fp.write("#Students\t{0}\t{1}\t{2}\t{3}\n".format(*students_names, *students_ids))
+
     def close_file(self):
         self.fp.close()
 
@@ -29,10 +33,13 @@ if __name__ == '__main__':
         exit(-1)
 
     dev_file, test_file, input_word, output_file = sys.argv[1:]
+    students_names = ["Ofri Kleinfeld", "Ofri Kleinfeld"]
+    students_ids = ["302893680", "302893680"]
 
     output_writer = OutputWriter(output_file)
 
     # write input arguments details
+    output_writer.write_students(students_names, students_ids)
     output_writer.write_line(dev_file)
     output_writer.write_line(test_file)
     output_writer.write_line(input_word)
@@ -47,7 +54,8 @@ if __name__ == '__main__':
 
     # lidston model part
     lidstone = LidstoneUnigramModel()
-    num_train, num_validation = lidstone.split_dev_to_train_validation(dev_file)
+    training_validation_ratio = 0.9
+    num_train, num_validation = lidstone.split_dev_to_train_validation(dev_file, training_validation_ratio)
     output_writer.write_line(num_validation)
     output_writer.write_line(num_train)
 
@@ -61,8 +69,8 @@ if __name__ == '__main__':
     # MLE estimator
     unseen_word = "unseen-word"
     input_word_estimator = lidstone.get_MLE_estimator(input_word)
-    output_writer.write_line(input_word_estimator)
     unseen_word_estimator = lidstone.get_MLE_estimator(unseen_word)
+    output_writer.write_line(input_word_estimator)
     output_writer.write_line(unseen_word_estimator)
 
     # estimators using different lambda values
@@ -84,6 +92,22 @@ if __name__ == '__main__':
     best_lambda, min_perplexity = lidstone.grid_search_lambda(grid_search_lambda_values)
     output_writer.write_line(best_lambda)
     output_writer.write_line(min_perplexity)
+
+    # Held-Out model part
+    held_out = HeldOutUnigramModel()
+    training_validation_ratio = 0.5
+    num_train, num_validation = held_out.split_dev_to_train_validation(dev_file, training_validation_ratio)
+    held_out.validation_set_size = num_validation
+
+    # write train and held out set sizes
+    output_writer.write_line(num_train)
+    output_writer.write_line(num_validation)
+
+    # write estimators for input word and unseen word according to held out smoothing
+    input_word_estimator = held_out.get_token_prob(input_word)
+    unseen_word_estimator = held_out.get_token_prob(unseen_word)
+    output_writer.write_line(input_word_estimator)
+    output_writer.write_line(unseen_word_estimator)
 
     output_writer.close_file()
 
