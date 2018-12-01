@@ -14,11 +14,28 @@ class OutputWriter(object):
         self.fp = open(self.output_file_path, "w", encoding="utf8")
 
     def write_line(self, value):
-        self.fp.write("#Output{0}:\t{1}\n".format(self.current_line_counter, value))
+        self.fp.write("#Output{0}\t{1}\n".format(self.current_line_counter, value))
         self.current_line_counter += 1
 
-    def write_students(self, students_names, students_ids):
-        self.fp.write("#Students\t{0}\t{1}\t{2}\t{3}\n".format(*students_names, *students_ids))
+    def write_students(self, students_names_, students_ids_):
+        self.fp.write("#Students\t{0}\t{1}\t{2}\t{3}\n".format(*students_names_, *students_ids_))
+
+    def write_table_row(self, r, f_lambda, f_heldout, Nr, tr):
+
+        self.fp.write("{0}\t{1}\t{2}\t{3}\t{4}\n".format(r, round(f_lambda, 5), round(f_heldout, 5), Nr, tr))
+
+    def write_table(self, lidston_obj, heldout_obj):
+        self.fp.write("#Output{0}\n".format(self.current_line_counter))
+
+        for r in range(10):
+            f_lidston = lidston_obj.get_expected_frequency_for_frequency_class(r)
+            f_heldout = heldout_obj.get_expected_frequency_for_frequency_class(r)
+            Nr = heldout_obj.get_Nr(r)
+            tr = heldout_obj.get_tr(r)
+
+            self.write_table_row(r, f_lidston, f_heldout, Nr, tr)
+
+        self.current_line_counter += 1
 
     def close_file(self):
         self.fp.close()
@@ -123,6 +140,12 @@ if __name__ == '__main__':
     better_model = 'H' if held_out_test_perplexity < best_lidstone_test_perplexity else 'L'
     output_writer.write_line(better_model)
 
+    # models comparision table part
+    lidstone.set_lambda(best_lambda)
+
+    output_writer.write_table(lidstone, held_out)
+
+    # close output file and finish
     output_writer.close_file()
 
 

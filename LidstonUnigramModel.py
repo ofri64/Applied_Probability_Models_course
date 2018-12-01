@@ -9,18 +9,22 @@ class LidstoneUnigramModel(AbstractUnigramModel):
         super(LidstoneUnigramModel, self).__init__()
         self.lambda_ = lambda_
         self.estimated_vocab_size = estimated_vocab_size
-        self.total_training_tokens = 0
+        self.total_training_tokens = -1
+
+    def get_total_training_tokens(self):
+
+        if self.total_training_tokens < 0:
+            train_word_counts = self.get_dataset_word_counts("train")
+            self.total_training_tokens = sum(train_word_counts.values())
+
+        return self.total_training_tokens
 
     def get_token_prob(self, word_token):
 
-        if len(self.training_word_counts) == 0:
-            raise AssertionError("Must count number of token in training set before performing inference")
-
-        if self.total_training_tokens == 0:
-            self.total_training_tokens = sum(self.training_word_counts.values())
+        total_training_tokens = self.get_total_training_tokens()
 
         count_word = self.training_word_counts.get(word_token, 0)
-        extended_sample_size = self.total_training_tokens + self.lambda_ * self.estimated_vocab_size
+        extended_sample_size = total_training_tokens + self.lambda_ * self.estimated_vocab_size
         return (count_word + self.lambda_) / extended_sample_size
 
     def get_MLE_estimator(self, word_token):
@@ -67,3 +71,13 @@ class LidstoneUnigramModel(AbstractUnigramModel):
             print("You must perform train-validation split before performing grid search")
             print("The error was: {0}".format(fnf.strerror))
             return None, None
+
+    def get_expected_frequency_for_frequency_class(self, r):
+
+        total_training_tokens = self.get_total_training_tokens()
+        extended_sample_size = total_training_tokens + self.lambda_ * self.estimated_vocab_size
+        frequency_class_prob = (r + self.lambda_) / extended_sample_size
+        expected_frequency = frequency_class_prob * total_training_tokens
+
+        return expected_frequency
+

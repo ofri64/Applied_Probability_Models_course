@@ -85,7 +85,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
             return tr
 
-    def get_validatio_set_size(self):
+    def get_validation_set_size(self):
 
         if self.validation_set_size < 0:
             self.validation_set_size = AbstractUnigramModel.get_num_events_for_dataset(self.validation_set_path)
@@ -101,8 +101,24 @@ class HeldOutUnigramModel(AbstractUnigramModel):
         # resolve Nr, tr and |SH|
         Nr = self.get_Nr(r)
         tr = self.get_tr(r)
-        validation_size = self.get_validatio_set_size()
+        validation_size = self.get_validation_set_size()
 
         # compute held out probability
         held_out_prob = tr / (validation_size * Nr)
         return held_out_prob
+
+    def get_expected_frequency_for_frequency_class(self, r):
+
+        # resolve Nr, tr and |SH|
+        Nr = self.get_Nr(r)
+        tr = self.get_tr(r)
+        validation_size = self.get_validation_set_size()
+
+        # compute held out probability
+        held_out_prob = tr / (validation_size * Nr)
+
+        # compute expected frequency of class r, according to the held out model
+        training_word_counts = self.get_dataset_word_counts("train")
+        expected_frequency = held_out_prob * len(training_word_counts)
+
+        return expected_frequency
