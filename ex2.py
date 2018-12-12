@@ -134,6 +134,7 @@ if __name__ == '__main__':
     best_lidstone_test_perplexity = lidstone.calculate_perplexity(test_file)
     held_out_test_perplexity = held_out.calculate_perplexity(test_file)
 
+    output_writer.write_line(num_events_test_set)
     output_writer.write_line(best_lidstone_test_perplexity)
     output_writer.write_line(held_out_test_perplexity)
 
