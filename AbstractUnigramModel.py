@@ -15,16 +15,17 @@ class AbstractUnigramModel(object):
     def get_data_lines_generator(dataset_path):
 
         try:
-            with open(dataset_path, mode="r", encoding="utf8") as fp:
+            with open(dataset_path, "r") as fp:
                 for line in fp:
-                    line_tokens = line.split(sep=" ")[:-1]
+                    line_tokens = line.split(" ")[:-1]
                     if not line_tokens:
                         continue
                     else:
                         yield line_tokens
 
-        except FileNotFoundError as fnf:
-            print("Exception occurred with code {0} and comment {1}".format(fnf.errno, fnf.strerror))
+        except Exception:
+            print("Exception occurred, could not read file {0}".format(dataset_path))
+            exit(-1)
 
     @staticmethod
     def get_num_events_for_dataset(dataset_path):
@@ -120,7 +121,7 @@ class AbstractUnigramModel(object):
                 # add log of current token prob to log sum
                 if token == "afterwards":
                     a = 1
-                sum_of_log_probs += math.log2(self.get_token_prob(token))
+                sum_of_log_probs += math.log(self.get_token_prob(token), 2)
                 # update number of token counts
                 num_total_tokens += 1
 

@@ -1,4 +1,3 @@
-import math
 from AbstractUnigramModel import AbstractUnigramModel
 
 
@@ -49,7 +48,7 @@ class LidstoneUnigramModel(AbstractUnigramModel):
         try:
             current_lambda = self.lambda_
             best_lambda = lambda_values[0]
-            min_perplexity_score = math.inf
+            min_perplexity_score = 99999
 
             for lambda_ in lambda_values:
                 self.set_lambda(lambda_)

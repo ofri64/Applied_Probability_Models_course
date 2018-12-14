@@ -1,4 +1,5 @@
 import sys
+import os
 from AbstractUnigramModel import AbstractUnigramModel
 from LidstonUnigramModel import LidstoneUnigramModel
 from HeldOutUnigramModel import HeldOutUnigramModel
@@ -18,7 +19,8 @@ class OutputWriter(object):
         self.current_line_counter += 1
 
     def write_students(self, students_names_, students_ids_):
-        self.fp.write("#Students\t{0}\t{1}\t{2}\t{3}\n".format(*students_names_, *students_ids_))
+        # self.fp.write("#Students\t{0}\t{1}\t{2}\t{3}\n".format(*students_names_, *students_ids_))
+        self.fp.write("#Students\t" + "\t".join(students_names_ + students_ids_) + "\n")
 
     def write_table_row(self, r, f_lambda, f_heldout, Nr, tr):
 
@@ -40,6 +42,12 @@ class OutputWriter(object):
     def close_file(self):
         self.fp.close()
 
+    @staticmethod
+    def remove_aux_files(file_name):
+        if os.path.exists(file_name):
+            os.remove(file_name)
+
+
 
 if __name__ == '__main__':
 
@@ -50,8 +58,8 @@ if __name__ == '__main__':
         exit(-1)
 
     dev_file, test_file, input_word, output_file = sys.argv[1:]
-    students_names = ["Ofri Kleinfeld", "Ofri Kleinfeld"]
-    students_ids = ["302893680", "302893680"]
+    students_names = ["Ofri Kleinfeld", "Shai Keynan"]
+    students_ids = ["302893680", "301687273"]
 
     output_writer = OutputWriter(output_file)
 
@@ -138,7 +146,12 @@ if __name__ == '__main__':
     output_writer.write_line(best_lidstone_test_perplexity)
     output_writer.write_line(held_out_test_perplexity)
 
-    better_model = 'H' if held_out_test_perplexity < best_lidstone_test_perplexity else 'L'
+    better_model = ""
+    if held_out_test_perplexity < best_lidstone_test_perplexity:
+        better_model = 'H'
+    else:
+        better_model = 'L'
+
     output_writer.write_line(better_model)
 
     # models comparision table part
@@ -148,6 +161,10 @@ if __name__ == '__main__':
 
     # close output file and finish
     output_writer.close_file()
+
+    # remove auxiliary training set and validation set files
+    output_writer.remove_aux_files("training_set.txt")
+    output_writer.remove_aux_files("validation_set.txt")
 
 
 
