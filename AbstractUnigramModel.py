@@ -1,7 +1,7 @@
 import os
 import math
 
-
+# abstract class for unigrams model,calc and holds number of apperances of each event in each set
 class AbstractUnigramModel(object):
 
     def __init__(self):
@@ -11,6 +11,7 @@ class AbstractUnigramModel(object):
         self.training_word_counts = {}
         self.validation_word_counts = {}
 
+    # read the input file and create genrators for each line
     @staticmethod
     def get_data_lines_generator(dataset_path):
 
@@ -27,6 +28,7 @@ class AbstractUnigramModel(object):
             print("Exception occurred, could not read file {0}".format(dataset_path))
             exit(-1)
 
+    # count number of events in the set
     @staticmethod
     def get_num_events_for_dataset(dataset_path):
 
@@ -38,6 +40,8 @@ class AbstractUnigramModel(object):
 
         return num_events
 
+    # split the develop set into train and validation sets (as files) by train_ratio
+    # and return the number of tokens in each set
     def split_dev_to_train_validation(self, validation_set_path, train_ratio):
 
         # calculate how many tokens should be in training set and validation set
@@ -83,6 +87,8 @@ class AbstractUnigramModel(object):
         # return number of training tokens and number of validation tokens
         return num_train, num_validation
 
+    # count the number of apperances of each different events in the dataset (train or validation)
+    # and return the dict of {tokens:his count}
     def get_dataset_word_counts(self, dataset_type):
         if dataset_type not in ["train", "validation"]:
             raise AttributeError("Data set type of calculating word counts must be either train or test")
@@ -106,9 +112,11 @@ class AbstractUnigramModel(object):
 
         return word_counts
 
+    #not impelemented on the abstarct class
     def get_token_prob(self, word_token):
         raise NotImplementedError("Each language model must implement get token prob method")
 
+    # calc and return the perplexity on a set using get_token_prob method that calc each token prob with given "lamda"
     def calculate_perplexity(self, dataset_path):
         num_total_tokens = 0
         sum_of_log_probs = 0

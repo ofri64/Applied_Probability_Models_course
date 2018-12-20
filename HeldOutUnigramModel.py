@@ -1,6 +1,6 @@
 from AbstractUnigramModel import AbstractUnigramModel
 
-
+# hels out unigram model
 class HeldOutUnigramModel(AbstractUnigramModel):
 
     def __init__(self, estimated_vocab_size=300000):
@@ -11,6 +11,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
         self.t0 = -1
         self.validation_set_size = -1
 
+    # create and return a dict of {number of appearances: all words that appeared that  number of times in the set}
     def get_frequency_classes(self):
 
         if len(self.frequency_classes) == 0:
@@ -31,6 +32,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
         return self.frequency_classes
 
+    # find the number of events that wasn't in the training set and were in the validation set
     def get_t0(self):
 
         # in this case we have to compute total number of times that events
@@ -48,6 +50,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
         # finally we return self.t0 (whether it was computed or just read from memory)
         return self.t0
 
+    # calc N0- number of events that "unseen" in the data set
     def get_N0(self):
 
         # in this case we have to number of events unseen in training
@@ -59,7 +62,8 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
         # finally we return self.t0 (whether it was computed or just read from memory)
         return self.N0
-
+    
+    # calc Nr- number of different events that appeared r times in the set
     def get_Nr(self, r):
 
         if r == 0:
@@ -69,6 +73,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
             frequency_classes = self.get_frequency_classes()
             return len(frequency_classes.get(r, []))
 
+    # calc and return tr- number of appearances in validation set of all events that appeared r times in the training set
     def get_tr(self, r):
 
         if r == 0:
@@ -85,6 +90,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
             return tr
 
+    # return number total number of tokens in the validation set
     def get_validation_set_size(self):
 
         if self.validation_set_size < 0:
@@ -92,6 +98,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
         return self.validation_set_size
 
+    # calc and return the propabilty of "word_token"s
     def get_token_prob(self, word_token):
 
         # first we compute "r" (frequency class) of given input word
@@ -107,6 +114,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
         held_out_prob = tr / (validation_size * Nr)
         return held_out_prob
 
+    # calc the fH- expected frequency according to the held_out prob
     def get_expected_frequency_for_frequency_class(self, r):
 
         # resolve Nr, tr and |SH|
