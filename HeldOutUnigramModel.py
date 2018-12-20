@@ -7,9 +7,10 @@ class HeldOutUnigramModel(AbstractUnigramModel):
         super(HeldOutUnigramModel, self).__init__()
         self.estimated_vocab_size = estimated_vocab_size
         self.frequency_classes = {}
-        self.N0 = -1
-        self.t0 = -1
-        self.validation_set_size = -1
+        self.N0 = 0
+        self.t0 = 0
+        self.training_set_size = 0
+        self.validation_set_size = 0
 
     # create and return a dict of {number of appearances: all words that appeared that  number of times in the set}
     def get_frequency_classes(self):
@@ -37,7 +38,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
         # in this case we have to compute total number of times that events
         # unseen in training, appeared in validation
-        if self.t0 < 0:
+        if self.t0 <= 0:
 
             # get training word counts and number of unique tokens seen in training
             training_word_counts = self.get_dataset_word_counts("train")
@@ -45,7 +46,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
             for word in validation_word_counts:
                 if word not in training_word_counts:
-                    self.t0 += 1
+                    self.t0 += validation_word_counts[word]
 
         # finally we return self.t0 (whether it was computed or just read from memory)
         return self.t0
@@ -55,7 +56,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
         # in this case we have to number of events unseen in training
         # we will counter our number of unique events and subtract it from our estimated vocabulary size
-        if self.N0 < 0:
+        if self.N0 <= 0:
             training_word_counts = self.get_dataset_word_counts("train")
             num_unique_words = len(training_word_counts.keys())
             self.N0 = self.estimated_vocab_size - num_unique_words
@@ -93,7 +94,7 @@ class HeldOutUnigramModel(AbstractUnigramModel):
     # return number total number of tokens in the validation set
     def get_validation_set_size(self):
 
-        if self.validation_set_size < 0:
+        if self.validation_set_size <= 0:
             self.validation_set_size = AbstractUnigramModel.get_num_events_for_dataset(self.validation_set_path)
 
         return self.validation_set_size
@@ -127,6 +128,6 @@ class HeldOutUnigramModel(AbstractUnigramModel):
 
         # compute expected frequency of class r, according to the held out model
         training_word_counts = self.get_dataset_word_counts("train")
-        expected_frequency = held_out_prob * len(training_word_counts)
+        expected_frequency = held_out_prob * sum(training_word_counts.values())
 
         return expected_frequency
