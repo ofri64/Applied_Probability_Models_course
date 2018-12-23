@@ -1,8 +1,8 @@
 import sys
 import os
-from AbstractUnigramModel import AbstractUnigramModel
-from LidstonUnigramModel import LidstoneUnigramModel
-from HeldOutUnigramModel import HeldOutUnigramModel
+from HW2.AbstractUnigramModel import AbstractUnigramModel
+from HW2.LidstonUnigramModel import LidstoneUnigramModel
+from HW2.HeldOutUnigramModel import HeldOutUnigramModel
 
 VOCAB_SIZE = 300000
 

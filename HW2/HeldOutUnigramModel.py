@@ -1,4 +1,4 @@
-from AbstractUnigramModel import AbstractUnigramModel
+from HW2.AbstractUnigramModel import AbstractUnigramModel
 
 # hels out unigram model
 class HeldOutUnigramModel(AbstractUnigramModel):

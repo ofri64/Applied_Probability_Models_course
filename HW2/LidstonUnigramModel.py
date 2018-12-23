@@ -1,4 +1,4 @@
-from AbstractUnigramModel import AbstractUnigramModel
+from HW2.AbstractUnigramModel import AbstractUnigramModel
 
 # lidstone unigram model
 class LidstoneUnigramModel(AbstractUnigramModel):
