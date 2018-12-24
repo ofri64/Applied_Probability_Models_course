@@ -1,3 +1,4 @@
+import math
 from DatasetReader import DatasetReader
 
 
@@ -87,4 +88,34 @@ class MixedHistogramMultinomialSmoothModel(object):
             # return lidston probability for unseen words given topic i
             return self.lambda_ / (self.num_words_per_cluster[cluster_num] + self.lambda_ * self.estimated_vocab_size)
 
+    def get_p_xi_given_sent(self, cluster_num, sentence):
+        # initiate zi values according to numerically stability computation method
+        k = 10
+        z_values = [0 for i in range(self.num_clusters)]
 
+        # sum log probabilities of each word in sentence according to each cluster
+        for word in sentence:
+            for i in range(self.num_clusters):
+                z_values[i] += math.log(self.get_p_w_given_xi(word, i))
+
+        # add alpha_i for each cluster
+        for i in range(self.num_clusters):
+            z_values[i] += math.log(self.get_p_xi(i))
+
+        # use m and k to avoid unstable computations
+        m = max(z_values)
+        z_minus_m_values = [z-m for z in z_values]
+        e_values = [math.exp(z - m) for z in z_values]
+
+        if z_minus_m_values[cluster_num] < -k:
+            # value is too small and may cause underflow
+            return 0
+
+        else:
+            normalization_denominator = 0
+            for i in range(len(z_values)):
+                # add to sum only numerical stable, else assume they are zero
+                if z_minus_m_values[i] >= -k:
+                    normalization_denominator += e_values[i]
+
+            return e_values[cluster_num] / normalization_denominator

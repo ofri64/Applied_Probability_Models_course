@@ -38,3 +38,11 @@ class DatasetReader(object):
         except Exception:
             print("Exception occurred, could not read file {0}".format(self.input_path))
             exit(-1)
+
+    def count_number_of_total_tokens(self):
+        total_tokens = 0
+        sentences_generator = self.generate_sentences()
+        for sent in sentences_generator:
+            total_tokens += len(sent)
+
+        return total_tokens
