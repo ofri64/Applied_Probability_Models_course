@@ -3,7 +3,7 @@ from DatasetReader import DatasetReader
 
 
 class MixedHistogramMultinomialSmoothModel(object):
-    def __init__(self, num_clusters=9, lambda_=0.6, estimated_vocab_size=300000, epsilon_threshold = 0.001):
+    def __init__(self, num_clusters=9, lambda_=0.06, estimated_vocab_size=300000, epsilon_threshold=0.001):
         self.num_clusters = num_clusters
         self.lambda_ = lambda_
         self.estimated_vocab_size = estimated_vocab_size
