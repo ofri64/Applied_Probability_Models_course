@@ -11,6 +11,8 @@ class MixedHistogramMultinomialSmoothModel(object):
         self.cluster_probs = []
         self.cluster_word_probs = [{} for i in range(num_clusters)]
         self.num_words_per_cluster = []
+        self.frequent_words_set = set()
+        self.em_clusters_total_mass = None
 
     def smooth_cluster_probs(self, current_cluster_probs):
         # change to epsilon if case of prob smaller than that
@@ -24,7 +26,7 @@ class MixedHistogramMultinomialSmoothModel(object):
 
         return new_cluster_probs
 
-    def initiate_word_and_cluster_probs(self, dataset_path, frequency_threshold=3):
+    def initiate_word_and_cluster_probs(self, dataset_path):
         # init reader
         dataset_reader = DatasetReader(dataset_path)
 
@@ -53,6 +55,7 @@ class MixedHistogramMultinomialSmoothModel(object):
                 if raw_word_counts[word] > self.epsilon_threshold:
 
                     cluster_word_counts[current_cluster][word] = cluster_word_counts[current_cluster].get(word, 0) + 1
+                    self.frequent_words_set.add(word)
 
             # update current cluster
             current_cluster = (current_cluster + 1) % self.num_clusters
@@ -84,9 +87,19 @@ class MixedHistogramMultinomialSmoothModel(object):
         # we return to smoothed probability
         if word in self.cluster_word_probs[cluster_num]:
             return self.cluster_word_probs[cluster_num][word]
+
         else:
-            # return lidston probability for unseen words given topic i
-            return self.lambda_ / (self.num_words_per_cluster[cluster_num] + self.lambda_ * self.estimated_vocab_size)
+
+            # in case we are in initial state before EM
+            # then our denominator (total mass) is simply count per cluster
+            if not self.em_clusters_total_mass:
+                total_clutser_mass = self.num_words_per_cluster[cluster_num]
+            else:
+                # if we are during EM our denominator include total mass of cluster according to model
+                total_clutser_mass = self.em_clusters_total_mass[cluster_num]
+
+            # return lidston smoothing for unseen words given topic i
+            return self.lambda_ / (total_clutser_mass + self.lambda_ * self.estimated_vocab_size)
 
     def get_p_xi_given_sent(self, cluster_num, sentence):
         # initiate zi values according to numerically stability computation method

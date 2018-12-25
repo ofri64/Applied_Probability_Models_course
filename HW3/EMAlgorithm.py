@@ -8,6 +8,7 @@ class EMAlgorithm(object):
         self.num_clusters = num_clusters
         self.stop_threshold = stop_threshold
         self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters)
+        self.iterations_likelihood = []
 
     def run_algorithm(self, training_set_path):
         # initiate the values for theta - model parameters
@@ -16,14 +17,17 @@ class EMAlgorithm(object):
         # initiate data reader and other variables
         data_reader = DatasetReader(training_set_path)
         num_total_training_tokens = data_reader.count_number_of_total_tokens()
-        iteration_num = 1
+        iteration_num = 0
         prev_likelihood = 0
         current_likelihood = self._compute_likelihood(training_set_path)
+        self.iterations_likelihood = [current_likelihood]
 
         print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
 
         # iterate until stopping criterion
         while abs(current_likelihood - prev_likelihood) > self.stop_threshold:
+            iteration_num += 1
+            print("starting iteration {0}".format(iteration_num))
 
             # E part is already implemented within the model class
             # perform M part to update model parameters
@@ -40,13 +44,50 @@ class EMAlgorithm(object):
             new_cluster_probs = [count / num_total_training_tokens for count in new_cluster_probs]
             new_cluster_probs = self.model.smooth_cluster_probs(new_cluster_probs)
 
+            print("finished updating cluster probs")
+
             # update word cluster probs
 
+            # initiate needed helper variables
+            cluster_word_mass = [{} for i in range(self.num_clusters)]
+            sentences = data_reader.generate_sentences()
 
+            # now we sum all the "mass" for every word that is frequent enough, given the current model theta
+            for sent in sentences:
+                for i in range(self.num_clusters):
+                    current_model_p_xi_given_sent = self.model.get_p_xi_given_sent(i, sent)
+                    for word in sent:
+                        if word in self.model.frequent_words_set:  # if word is frequent enough
+                            cluster_word_mass[i][word] = cluster_word_mass[i].get(word, 0) + current_model_p_xi_given_sent
 
+            clusters_total_mass = [sum(cluster_word_mass[i].values()) for i in range(self.num_clusters)]
 
-            # assign new cluster probs to model
-            # self.model.cluster_probs = new_cluster_probs
+            # now compute probs using the mass
+            # apply also lidston smoothing over the calculated probabilites
+            cluster_word_probs = [{} for i in range(self.num_clusters)]
+            lambda_ = self.model.lambda_
+            vocab_size = self.model.estimated_vocab_size
+
+            for word in self.model.frequent_words_set:
+                for i in range(self.num_clusters):
+                    current_cluster_word_mass = cluster_word_mass[i][word]
+                    current_cluster_total_mass = clusters_total_mass[i]
+                    cluster_word_probs[i][word] = (current_cluster_word_mass + lambda_) / (current_cluster_total_mass + vocab_size * lambda_)
+
+            print("finished updating cluster word probs")
+
+            # assign new cluster probs to and new word cluster probs to model
+
+            self.model.cluster_probs = new_cluster_probs
+            self.model.cluster_word_probs = cluster_word_probs
+            self.model.em_clusters_total_mass = clusters_total_mass
+
+            # print and save current likelihood and new likelihood
+
+            prev_likelihood = current_likelihood
+            current_likelihood = self._compute_likelihood(training_set_path)
+            self.iterations_likelihood.append(current_likelihood)
+            print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
 
     def _compute_likelihood(self, training_set_path):
         log_likelihood = 0
