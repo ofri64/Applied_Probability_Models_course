@@ -1,12 +1,13 @@
 import math
-from DatasetReader import DatasetReader
+from DatasetHandler import DatasetHandler
 from MixedHistogramMultinomialSmoothModel import MixedHistogramMultinomialSmoothModel
 
 
 class EMAlgorithm(object):
-    def __init__(self, num_clusters=9, stop_threshold=10):
+    def __init__(self, num_clusters=9, stop_threshold=100, max_num_iterations=300):
         self.num_clusters = num_clusters
         self.stop_threshold = stop_threshold
+        self.max_num_iterations = max_num_iterations
         self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters)
         self.iterations_likelihood = []
 
@@ -15,7 +16,7 @@ class EMAlgorithm(object):
         self.model.initiate_word_and_cluster_probs(training_set_path)
 
         # initiate data reader and other variables
-        data_reader = DatasetReader(training_set_path)
+        data_reader = DatasetHandler(training_set_path)
         num_total_training_tokens = data_reader.count_number_of_total_tokens()
         iteration_num = 0
         prev_likelihood = 0
@@ -25,9 +26,9 @@ class EMAlgorithm(object):
         print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
 
         # iterate until stopping criterion
-        while abs(current_likelihood - prev_likelihood) > self.stop_threshold:
+        while abs(current_likelihood - prev_likelihood) > self.stop_threshold and iteration_num < self.max_num_iterations:
             iteration_num += 1
-            print("starting iteration {0}".format(iteration_num))
+            # print("starting iteration {0}".format(iteration_num))
 
             # E part is already implemented within the model class
             # perform M part to update model parameters
@@ -44,7 +45,7 @@ class EMAlgorithm(object):
             new_cluster_probs = [count / num_total_training_tokens for count in new_cluster_probs]
             new_cluster_probs = self.model.smooth_cluster_probs(new_cluster_probs)
 
-            print("finished updating cluster probs")
+            # print("finished updating cluster probs")
 
             # update word cluster probs
 
@@ -74,7 +75,7 @@ class EMAlgorithm(object):
                     current_cluster_total_mass = clusters_total_mass[i]
                     cluster_word_probs[i][word] = (current_cluster_word_mass + lambda_) / (current_cluster_total_mass + vocab_size * lambda_)
 
-            print("finished updating cluster word probs")
+            # print("finished updating cluster word probs")
 
             # assign new cluster probs to and new word cluster probs to model
 
@@ -89,9 +90,13 @@ class EMAlgorithm(object):
             self.iterations_likelihood.append(current_likelihood)
             print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
 
+        # At the end of algorithm write model parameters (theta) and iterations information
+        self.model.save_object_as_pickle()
+        DatasetHandler.write_results_to_file(self.iterations_likelihood, "iterations_likelihood.txt")
+
     def _compute_likelihood(self, training_set_path):
         log_likelihood = 0
-        data_reader = DatasetReader(training_set_path)
+        data_reader = DatasetHandler(training_set_path)
         sentences_generator = data_reader.generate_sentences()
         k = 10
 

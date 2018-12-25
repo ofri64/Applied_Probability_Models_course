@@ -1,5 +1,6 @@
 import math
-from DatasetReader import DatasetReader
+import pickle
+from DatasetHandler import DatasetHandler
 
 
 class MixedHistogramMultinomialSmoothModel(object):
@@ -28,7 +29,7 @@ class MixedHistogramMultinomialSmoothModel(object):
 
     def initiate_word_and_cluster_probs(self, dataset_path):
         # init reader
-        dataset_reader = DatasetReader(dataset_path)
+        dataset_reader = DatasetHandler(dataset_path)
 
         # init clusters and word in cluster counts data structures
         raw_word_counts = {}
@@ -132,3 +133,7 @@ class MixedHistogramMultinomialSmoothModel(object):
                     normalization_denominator += e_values[i]
 
             return e_values[cluster_num] / normalization_denominator
+
+    def save_object_as_pickle(self):
+        with open("model_object.pkl", "wb") as output:
+            pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)

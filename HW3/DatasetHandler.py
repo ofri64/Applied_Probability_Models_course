@@ -1,4 +1,4 @@
-class DatasetReader(object):
+class DatasetHandler(object):
 
     def __init__(self, input_path):
 
@@ -46,3 +46,9 @@ class DatasetReader(object):
             total_tokens += len(sent)
 
         return total_tokens
+
+    @staticmethod
+    def write_results_to_file(results, output_file):
+        with open(output_file, "w") as f:
+            for res in results:
+                f.write("{0}, ".format(res))
