@@ -10,6 +10,7 @@ class EMAlgorithm(object):
         self.max_num_iterations = max_num_iterations
         self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters)
         self.iterations_likelihood = []
+        self.iterations_perplexity = []
 
     def run_algorithm(self, training_set_path):
         # initiate the values for theta - model parameters
@@ -21,9 +22,12 @@ class EMAlgorithm(object):
         iteration_num = 0
         prev_likelihood = -99999999
         current_likelihood = self._compute_likelihood(training_set_path)
+        current_perplexity = self._compute_perplexity(current_likelihood, num_total_training_tokens)
         self.iterations_likelihood = [current_likelihood]
+        self.iterations_perplexity = [current_perplexity]
 
         print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
+        print("perplexity value for iteration {0} is: {1}".format(iteration_num, current_perplexity))
 
         # iterate until stopping criterion
         while (current_likelihood - prev_likelihood) / abs(prev_likelihood) > self.stop_threshold and iteration_num < self.max_num_iterations:
@@ -87,8 +91,11 @@ class EMAlgorithm(object):
 
             prev_likelihood = current_likelihood
             current_likelihood = self._compute_likelihood(training_set_path)
+            current_perplexity = self._compute_perplexity(current_likelihood, num_total_training_tokens)
             self.iterations_likelihood.append(current_likelihood)
+            self.iterations_perplexity.append(current_perplexity)
             print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
+            print("perplexity value for iteration {0} is: {1}".format(iteration_num, current_perplexity))
 
         # At the end of algorithm write model parameters (theta) and iterations information
         self.model.save_object_as_pickle()
@@ -122,3 +129,7 @@ class EMAlgorithm(object):
             log_likelihood += m + math.log(sent_stable_comp_sum)
 
         return log_likelihood
+
+    def _compute_perplexity(self, log_likelihood, total_training_tokens):
+        average_inverse_likelihood = -1 * log_likelihood / total_training_tokens
+        return math.exp(average_inverse_likelihood)
