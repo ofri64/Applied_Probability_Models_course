@@ -4,7 +4,7 @@ from MixedHistogramMultinomialSmoothModel import MixedHistogramMultinomialSmooth
 
 
 class EMAlgorithm(object):
-    def __init__(self, num_clusters=9, stop_threshold=100, max_num_iterations=300):
+    def __init__(self, num_clusters=9, stop_threshold=0.000001, max_num_iterations=300):
         self.num_clusters = num_clusters
         self.stop_threshold = stop_threshold
         self.max_num_iterations = max_num_iterations
@@ -19,14 +19,14 @@ class EMAlgorithm(object):
         data_reader = DatasetHandler(training_set_path)
         num_total_training_tokens = data_reader.count_number_of_total_tokens()
         iteration_num = 0
-        prev_likelihood = 0
+        prev_likelihood = -99999999
         current_likelihood = self._compute_likelihood(training_set_path)
         self.iterations_likelihood = [current_likelihood]
 
         print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
 
         # iterate until stopping criterion
-        while abs(current_likelihood - prev_likelihood) > self.stop_threshold and iteration_num < self.max_num_iterations:
+        while (current_likelihood - prev_likelihood) / abs(prev_likelihood) > self.stop_threshold and iteration_num < self.max_num_iterations:
             iteration_num += 1
             # print("starting iteration {0}".format(iteration_num))
 
