@@ -1,3 +1,5 @@
+# Ofri Kleinfeld    Shai Keynan 302893680   301687273
+
 import math
 from DatasetHandler import DatasetHandler
 from MixedHistogramMultinomialSmoothModel import MixedHistogramMultinomialSmoothModel
@@ -38,15 +40,16 @@ class EMAlgorithm(object):
             # perform M part to update model parameters
 
             # update cluster probs
-            new_cluster_probs = [0 for i in range(self.num_clusters)]
+            new_clusters_mass = [0 for i in range(self.num_clusters)]
             sentences = data_reader.generate_sentences()
 
             for sent in sentences:
                 for i in range(self.num_clusters):
-                    new_cluster_probs[i] += self.model.get_p_xi_given_sent(i, sent)
+                    new_clusters_mass[i] += self.model.get_p_xi_given_sent(i, sent)
 
             # divide by N and normalize/smooth
-            new_cluster_probs = [count / num_total_training_tokens for count in new_cluster_probs]
+            total_mass_all_clusters = sum(new_clusters_mass)
+            new_cluster_probs = [cluster_mass / total_mass_all_clusters for cluster_mass in new_clusters_mass]
             new_cluster_probs = self.model.smooth_cluster_probs(new_cluster_probs)
 
             # print("finished updating cluster probs")

@@ -1,14 +1,18 @@
+# Ofri Kleinfeld    Shai Keynan 302893680   301687273
+
 import math
 import pickle
 from DatasetHandler import DatasetHandler
 
 
 class MixedHistogramMultinomialSmoothModel(object):
-    def __init__(self, num_clusters=9, lambda_=0.06, estimated_vocab_size=300000, epsilon_threshold=0.001):
+    def __init__(self, num_clusters=9, lambda_=0.06, estimated_vocab_size=300000, epsilon_threshold=0.001,
+                 frequent_word_threshold=3):
         self.num_clusters = num_clusters
         self.lambda_ = lambda_
         self.estimated_vocab_size = estimated_vocab_size
         self.epsilon_threshold = epsilon_threshold
+        self.frequent_word_threshold = frequent_word_threshold
         self.cluster_probs = []
         self.cluster_word_probs = [{} for i in range(num_clusters)]
         self.num_words_per_cluster = []
@@ -49,12 +53,12 @@ class MixedHistogramMultinomialSmoothModel(object):
         # also use frequency threshold to reduce resources
         sent_generator = dataset_reader.generate_sentences()
         for sent in sent_generator:
-            cluster_counts[current_cluster] += 1
 
             for word in sent:
                 # apply frequency threshold reduction
-                if raw_word_counts[word] > self.epsilon_threshold:
+                if raw_word_counts[word] > self.frequent_word_threshold:
 
+                    cluster_counts[current_cluster] += 1
                     cluster_word_counts[current_cluster][word] = cluster_word_counts[current_cluster].get(word, 0) + 1
                     self.frequent_words_set.add(word)
 
@@ -134,6 +138,22 @@ class MixedHistogramMultinomialSmoothModel(object):
 
             return e_values[cluster_num] / normalization_denominator
 
+    def classify_sent(self, sent):
+        max_prob = 0
+        max_prob_cluster = 0
+        for i in range(self.num_clusters):
+            cluster_i_prob = self.get_p_xi_given_sent(i, sent)
+            if cluster_i_prob > max_prob:
+                max_prob = cluster_i_prob
+                max_prob_cluster = i
+
+        return max_prob_cluster
+
     def save_object_as_pickle(self):
         with open("model_object.pkl", "wb") as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def load_model_object(load_path="model_object.pkl"):
+        with open(load_path, "rb") as input_file:
+            return pickle.load(input_file)
