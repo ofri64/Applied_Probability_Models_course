@@ -3,10 +3,11 @@
 from DatasetHandler import DatasetHandler
 from MixedHistogramMultinomialSmoothModel import MixedHistogramMultinomialSmoothModel
 from EMAlgorithm import EMAlgorithm
-from Report import Report
+# from Report import Report
 
-dev_input = "dataset/develop.txt"
-em = EMAlgorithm(num_clusters=9, k=10, lambda_ = 0.03)
+# dev_input = "dataset/develop.txt"
+dev_input = "develop.txt"
+em = EMAlgorithm(num_clusters=9, k=10, lambda_=0.01)
 em.run_algorithm(dev_input)
 
 # At the end of algorithm write model parameters (theta) and iterations information
