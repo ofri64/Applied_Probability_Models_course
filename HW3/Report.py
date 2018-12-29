@@ -1,3 +1,5 @@
+# Ofri Kleinfeld    Shai Keynan 302893680   301687273
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -70,9 +72,10 @@ class Report(object):
         print(self.clusters_predicted_labels)
 
     def plot_cluster_histogram(self, cluster_num):
-        title = 'Cluster number {0} topics histogram'.format(cluster_num)
         topics = self.ordered_topics
         counts = [self.clusters_topics[cluster_num].get(topic, 0) for topic in topics]
+        cluster_topic_id = np.argmax(counts)
+        title = 'Cluster {0}- "{1}"'.format(cluster_num, topics[cluster_topic_id])
         plt.style.use('bmh')
         plt.bar(topics, counts, color='green', alpha=0.3)
         plt.xlabel('Topics')

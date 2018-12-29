@@ -115,3 +115,4 @@ venv.bak/
 *.pkl
 *.csv
 *.txt
+*.docx
