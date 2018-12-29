@@ -20,9 +20,12 @@ print(trained_model.k)
 print(trained_model.lambda_)
 
 report = Report(trained_model, dev_input, "iterations_likelihood_lambda_0.01.txt", "iterations_perplexity_lambda_0.01.txt")
-# report.plot_iterations_graphs("l")
-# report.plot_iterations_graphs("p")
+report.plot_iterations_graphs("l")
+report.plot_iterations_graphs("p")
 report.create_confusion_mat()
+
+for i in range(trained_model.num_clusters):
+    report.plot_cluster_histogram(i)
+
 report.label_prediction_clusters()
 report.compute_model_accuracy()
-# report.plot_cluster_histogram(0)

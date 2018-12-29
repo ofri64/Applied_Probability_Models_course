@@ -40,6 +40,7 @@ class Report(object):
         plt.title(title)
         plt.grid(True)
         plt.savefig("{0}.png".format(data_type))
+        plt.close()
 
     def create_confusion_mat(self):
         clusters_topics = [{} for i in range(self.model.num_clusters)]
@@ -78,6 +79,7 @@ class Report(object):
         plt.title(title)
         plt.grid(True)
         plt.savefig("cluster_{0}_histogram.png".format(cluster_num))
+        plt.close()
 
     def compute_model_accuracy(self):
         if len(self.clusters_predicted_labels) == 0:
