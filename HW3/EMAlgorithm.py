@@ -6,11 +6,11 @@ from MixedHistogramMultinomialSmoothModel import MixedHistogramMultinomialSmooth
 
 
 class EMAlgorithm(object):
-    def __init__(self, num_clusters=9, stop_threshold=0.000001, max_num_iterations=300):
+    def __init__(self, num_clusters=9, stop_threshold=5, max_num_iterations=150, lambda_=0.06, k=10):
         self.num_clusters = num_clusters
         self.stop_threshold = stop_threshold
         self.max_num_iterations = max_num_iterations
-        self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters)
+        self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters, lambda_=lambda_, k=k)
         self.iterations_likelihood = []
         self.iterations_perplexity = []
 
@@ -22,7 +22,7 @@ class EMAlgorithm(object):
         data_reader = DatasetHandler(training_set_path)
         num_total_training_tokens = data_reader.count_number_of_total_tokens()
         iteration_num = 0
-        prev_likelihood = -99999999
+        num_consecutive_decreasing = 0
         current_likelihood = self._compute_likelihood(training_set_path)
         current_perplexity = self._compute_perplexity(current_likelihood, num_total_training_tokens)
         self.iterations_likelihood = [current_likelihood]
@@ -32,7 +32,7 @@ class EMAlgorithm(object):
         print("perplexity value for iteration {0} is: {1}".format(iteration_num, current_perplexity))
 
         # iterate until stopping criterion
-        while (current_likelihood - prev_likelihood) / abs(prev_likelihood) > self.stop_threshold and iteration_num < self.max_num_iterations:
+        while num_consecutive_decreasing < self.stop_threshold and iteration_num < self.max_num_iterations:
             iteration_num += 1
             # print("starting iteration {0}".format(iteration_num))
 
@@ -99,6 +99,10 @@ class EMAlgorithm(object):
             self.iterations_perplexity.append(current_perplexity)
             print("likelihood value for iteration {0} is: {1}".format(iteration_num, current_likelihood))
             print("perplexity value for iteration {0} is: {1}".format(iteration_num, current_perplexity))
+
+            if current_likelihood - prev_likelihood < 0:
+                # the likelihood didn't improve in this iteration
+                num_consecutive_decreasing += 1
 
         # At the end of algorithm write model parameters (theta) and iterations information
         self.model.save_object_as_pickle()

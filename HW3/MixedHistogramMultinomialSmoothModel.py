@@ -7,9 +7,10 @@ from DatasetHandler import DatasetHandler
 
 class MixedHistogramMultinomialSmoothModel(object):
     def __init__(self, num_clusters=9, lambda_=0.06, estimated_vocab_size=300000, epsilon_threshold=0.001,
-                 frequent_word_threshold=3):
+                 frequent_word_threshold=3, k=10):
         self.num_clusters = num_clusters
         self.lambda_ = lambda_
+        self.k = k
         self.estimated_vocab_size = estimated_vocab_size
         self.epsilon_threshold = epsilon_threshold
         self.frequent_word_threshold = frequent_word_threshold

@@ -109,3 +109,9 @@ venv.bak/
 
 # ignore .idea folder
 /.idea
+
+# ignore csv, png pkl and text files
+*.png
+*.pkl
+*.csv
+*.txt
