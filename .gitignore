@@ -116,3 +116,6 @@ venv.bak/
 *.csv
 *.txt
 *.docx
+
+# ignore .DS_Store
+.DS_Store
