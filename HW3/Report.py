@@ -58,7 +58,7 @@ class Report(object):
         df = df.fillna(0)
         df["total_in_cluster"] = df.sum(axis=1)
         self.clusters_topics = clusters_topics
-        df.to_csv("conf_matrix_lambda_0.01.csv")
+        df.to_csv("conf_matrix.csv")
         print(df)
 
     def label_prediction_clusters(self):
