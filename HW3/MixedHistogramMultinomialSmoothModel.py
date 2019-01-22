@@ -55,11 +55,11 @@ class MixedHistogramMultinomialSmoothModel(object):
         sent_generator = dataset_reader.generate_sentences()
         for sent in sent_generator:
 
+            cluster_counts[current_cluster] += 1
+
             for word in sent:
                 # apply frequency threshold reduction
                 if raw_word_counts[word] > self.frequent_word_threshold:
-
-                    cluster_counts[current_cluster] += 1
                     cluster_word_counts[current_cluster][word] = cluster_word_counts[current_cluster].get(word, 0) + 1
                     self.frequent_words_set.add(word)
 
@@ -114,8 +114,9 @@ class MixedHistogramMultinomialSmoothModel(object):
 
         # sum log probabilities of each word in sentence according to each cluster
         for word in sentence:
-            for i in range(self.num_clusters):
-                z_values[i] += math.log(self.get_p_w_given_xi(word, i))
+            if word in self.frequent_words_set:
+                for i in range(self.num_clusters):
+                    z_values[i] += math.log(self.get_p_w_given_xi(word, i))
 
         # add alpha_i for each cluster
         for i in range(self.num_clusters):

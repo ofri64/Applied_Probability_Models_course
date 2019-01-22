@@ -42,11 +42,23 @@ class DatasetHandler(object):
             print("Exception occurred, could not read file {0}".format(self.input_path))
             exit(-1)
 
-    def count_number_of_total_tokens(self):
+    def count_number_of_total_tokens(self, frequent_threshold=None):
         total_tokens = 0
         sentences_generator = self.generate_sentences()
-        for sent in sentences_generator:
-            total_tokens += len(sent)
+        if not frequent_threshold:
+            for sent in sentences_generator:
+                total_tokens += len(sent)
+
+        else:
+            # have to perform two passes over the data - first to count frequencies and then sum only those above threshold
+            raw_word_counts = {}
+            for sent in sentences_generator:
+                for word in sent:
+                    raw_word_counts[word] = raw_word_counts.get(word, 0) + 1
+
+            for word in raw_word_counts:
+                if raw_word_counts[word] > frequent_threshold:
+                    total_tokens += raw_word_counts[word]
 
         return total_tokens
 

@@ -6,11 +6,13 @@ from MixedHistogramMultinomialSmoothModel import MixedHistogramMultinomialSmooth
 
 
 class EMAlgorithm(object):
-    def __init__(self, num_clusters=9, stop_threshold=5, max_num_iterations=150, lambda_=0.06, k=10):
+    def __init__(self, num_clusters=9, stop_threshold=5, max_num_iterations=150, lambda_=0.06, k=10,
+                 estimated_vocab_size=300000):
         self.num_clusters = num_clusters
         self.stop_threshold = stop_threshold
         self.max_num_iterations = max_num_iterations
-        self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters, lambda_=lambda_, k=k)
+        self.model = MixedHistogramMultinomialSmoothModel(num_clusters=self.num_clusters, lambda_=lambda_, k=k,
+                                                          estimated_vocab_size=estimated_vocab_size)
         self.iterations_likelihood = []
         self.iterations_perplexity = []
 
@@ -20,7 +22,7 @@ class EMAlgorithm(object):
 
         # initiate data reader and other variables
         data_reader = DatasetHandler(training_set_path)
-        num_total_training_tokens = data_reader.count_number_of_total_tokens()
+        num_total_training_tokens = data_reader.count_number_of_total_tokens(frequent_threshold=self.model.frequent_word_threshold)
         iteration_num = 0
         num_consecutive_decreasing = 0
         current_likelihood = self._compute_likelihood(training_set_path)
@@ -117,8 +119,9 @@ class EMAlgorithm(object):
         for sent in sentences_generator:
             z_values = [0 for i in range(self.num_clusters)]
             for word in sent:
-                for i in range(self.num_clusters):
-                    z_values[i] += math.log(self.model.get_p_w_given_xi(word, i))
+                if word in self.model.frequent_words_set:
+                    for i in range(self.num_clusters):
+                        z_values[i] += math.log(self.model.get_p_w_given_xi(word, i))
 
             # add alpha_i for each cluster
             for i in range(self.num_clusters):
